@@ -16,6 +16,11 @@ class Bullet(Sprite):
             self.settings.bullet_height)
         self.rect.midtop = ai_game.ship.rect.midtop
 
+        # Ship Lazer sound
+        self.lazer = pygame.mixer.Sound('Sounds/lazer.wav')
+        self.lazer.play()
+
+
         # Store the bullet's position as a decimal value.
         self.y = float(self.rect.y)
 
@@ -29,5 +34,6 @@ class Bullet(Sprite):
     def draw_bullet(self):
         """Draw the bullet to the screen"""
         pygame.draw.rect(self.screen, self.color, self.rect)
+        
 
 
