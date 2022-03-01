@@ -22,6 +22,16 @@ class GameStats:
         except FileNotFoundError:
             return 0
 
+    def _check_high_score(self):
+        """
+        Check if current score is higher than the saved high score and update 
+        the JSON file if it is.
+        """
+        saved_high_score = self.get_saved_high_score()
+        if self.high_score > saved_high_score:
+            with open('user_scores.json', 'w', encoding='utf-8') as f:
+                json.dump(self.high_score, f)
+
     def reset_stats(self):
         """Initialize statistics that can change during the game."""
         self.ships_left = self.settings.ship_limit

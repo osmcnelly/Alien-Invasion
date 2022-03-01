@@ -21,9 +21,10 @@ class AlienInvasion:
         self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         self.settings.screen_width = self.screen.get_rect().width
         self.settings.screen_height = self.screen.get_rect().height
+        
         pygame.display.set_caption("Alien Invasion")
 
-        # Create an instance to store game stats and create a scoreboard
+        # Create an instance to storeqqq game stats and create a scoreboard
         self.stats = GameStats(self)   
         self.sb = Scoreboard(self) 
 
@@ -40,7 +41,7 @@ class AlienInvasion:
         self._make_difficulty_buttons()
 
         # Set the background color.
-        self.bg_color = (230, 230, 230)     
+        #self.bg_color = (230, 230, 230)     
  
     def _make_difficulty_buttons(self):
         """Make buttons that allow player to select difficulty level."""
@@ -48,17 +49,21 @@ class AlienInvasion:
         self.medium_button = Button(self, "Medium")
         self.difficult_button = Button(self, "Difficult")
  
-        # Position buttons so they don't all overlap.
+        # Position buttons so they are inline and under tha play button.
+        self.easy_button.rect.right = (
+            self.medium_button.rect.left - 0.5*self.play_button.rect.width)
         self.easy_button.rect.top = (
-            self.play_button.rect.top + 1.5*self.play_button.rect.height)
+            self.play_button.rect.bottom + 0.5*self.play_button.rect.height)
         self.easy_button._update_msg_position()
 
         self.medium_button.rect.top = (
-            self.easy_button.rect.top + 1.5*self.easy_button.rect.height)
+            self.play_button.rect.bottom + 0.5*self.easy_button.rect.height)
         self.medium_button._update_msg_position()
 
+        self.difficult_button.rect.left = (
+            self.medium_button.rect.right + 0.5*self.medium_button.rect.width)
         self.difficult_button.rect.top = (
-            self.medium_button.rect.top + 1.5*self.medium_button.rect.height)
+            self.play_button.rect.bottom + 0.5*self.medium_button.rect.height)
         self.difficult_button._update_msg_position()
 
     def run_game(self):
@@ -149,8 +154,7 @@ class AlienInvasion:
         elif event.key == pygame.K_q:
                 self._exit_game()
         elif event.key == pygame.K_SPACE:
-            self._fire_bullet()
-            
+            self._fire_bullet()     
 
     def _check_keyup_events(self, event):
         """Respond to key releases"""
@@ -241,11 +245,14 @@ class AlienInvasion:
             # Pause.
             sleep(0.5)
         else:
+            # Stop the game music and play 'ship crash' and 'game over' sound
             pygame.mixer.music.stop()
             self.ship_crash.play()
             self.game_over = pygame.mixer.Sound('Sounds/game_over.wav')
             self.game_over.play()
-            self._check_high_score()
+
+            # Check/update high score, and set game_active to false
+            self.stats._check_high_score()
             self.stats.game_active = False
             pygame.mouse.set_visible(True)
 
@@ -303,7 +310,7 @@ class AlienInvasion:
     def _update_screen(self):
         """Update images on the screen and flip to the new screen."""
         # Redraw the screenduring each pass through the loop.
-        self.screen.fill(self.settings.bg_color)
+        self.screen.blit(self.settings.bg, self.settings.bg_rect)
         self.ship.blitme()
         for bullet in self.bullets.sprites():
             bullet.draw_bullet()
@@ -321,20 +328,10 @@ class AlienInvasion:
 
         # Make the most recently drawn screen visible.
         pygame.display.flip()
-    
-    def _check_high_score(self):
-        """
-        Check if current score is higher than the saved high score and update 
-        the JSON file if it is.
-        """
-        screen_rect = self.screen.get_rect()
-        saved_high_score = self.stats.get_saved_high_score()
-        if self.stats.high_score > saved_high_score:
-            with open('user_scores.json', 'w', encoding='utf-8') as f:
-                json.dump(self.stats.high_score, f)
 
     def _exit_game(self):
-        """Exit the game."""
+        """Save the high score and exit the game using sys.exit()."""
+        self.stats._check_high_score()
         sys.exit()
 
 
