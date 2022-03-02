@@ -1,4 +1,4 @@
-import sys, pygame, json
+import sys, pygame
 
 from time import sleep
 
@@ -19,12 +19,10 @@ class AlienInvasion:
         self.settings = Settings()
 
         self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-        self.settings.screen_width = self.screen.get_rect().width
-        self.settings.screen_height = self.screen.get_rect().height
         
         pygame.display.set_caption("Alien Invasion")
 
-        # Create an instance to storeqqq game stats and create a scoreboard
+        # Create an instance to store game stats and create a scoreboard
         self.stats = GameStats(self)   
         self.sb = Scoreboard(self) 
 
@@ -38,33 +36,7 @@ class AlienInvasion:
         self.play_button = Button(self, "Play")
 
         # Make difficulty level buttons.
-        self._make_difficulty_buttons()
-
-        # Set the background color.
-        #self.bg_color = (230, 230, 230)     
- 
-    def _make_difficulty_buttons(self):
-        """Make buttons that allow player to select difficulty level."""
-        self.easy_button =  Button(self, "Easy")
-        self.medium_button = Button(self, "Medium")
-        self.difficult_button = Button(self, "Difficult")
- 
-        # Position buttons so they are inline and under tha play button.
-        self.easy_button.rect.right = (
-            self.medium_button.rect.left - 0.5*self.play_button.rect.width)
-        self.easy_button.rect.top = (
-            self.play_button.rect.bottom + 0.5*self.play_button.rect.height)
-        self.easy_button._update_msg_position()
-
-        self.medium_button.rect.top = (
-            self.play_button.rect.bottom + 0.5*self.easy_button.rect.height)
-        self.medium_button._update_msg_position()
-
-        self.difficult_button.rect.left = (
-            self.medium_button.rect.right + 0.5*self.medium_button.rect.width)
-        self.difficult_button.rect.top = (
-            self.play_button.rect.bottom + 0.5*self.medium_button.rect.height)
-        self.difficult_button._update_msg_position()
+        self._make_difficulty_buttons()  
 
     def run_game(self):
         """Start the main loop for the game."""
@@ -77,43 +49,6 @@ class AlienInvasion:
                 self._update_aliens()
             
             self._update_screen()
-            
-    def _check_events(self):
-        """Respond to keypresses and mouse events."""
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                sys.exit()
-            
-            elif event.type == pygame.KEYDOWN:
-                self._check_keydown_events(event)
-
-            elif event.type == pygame.KEYUP:
-                self._check_keyup_events(event)
-            
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_pos = pygame.mouse.get_pos()
-                self._check_play_button(mouse_pos)
-                self._check_difficulty_buttons(mouse_pos)
-
-    def _check_play_button(self, mouse_pos):
-        """Start a new game when the player clicks Play."""
-        button_clicked = self.play_button.rect.collidepoint(mouse_pos)
-        if button_clicked and not self.stats.game_active:
-            self._start_game()
-
-    def _check_difficulty_buttons(self, mouse_pos):
-        """Set the appropriate difficulty level."""
-        easy_button_clicked = self.easy_button.rect.collidepoint(mouse_pos)
-        medium_button_clicked = self.medium_button.rect.collidepoint(
-                mouse_pos)
-        diff_button_clicked = self.difficult_button.rect.collidepoint(
-                mouse_pos)
-        if easy_button_clicked:
-            self.settings.difficulty_level = 'easy'
-        elif medium_button_clicked:
-            self.settings.difficulty_level = 'medium'
-        elif diff_button_clicked:
-            self.settings.difficulty_level = 'difficult'         
 
     def _start_game(self):
         # Reset the game settings.
@@ -144,6 +79,84 @@ class AlienInvasion:
 
         # Pause for the music countdown
         sleep(2.0) 
+            
+
+    def _make_difficulty_buttons(self):
+        """Make buttons that allow player to select difficulty level."""
+        self.rookie_button =  Button(self, "Rookie")
+        self.hero_button = Button(self, "Hero")
+        self.veteran_button = Button(self, "Veteran")
+ 
+        # Position buttons so they are inline and under the play button.
+        self.rookie_button.rect.right = (
+            self.hero_button.rect.left - 0.5 * self.play_button.rect.width)
+        self.rookie_button.rect.top = (
+            self.play_button.rect.bottom + 0.5 * self.play_button.rect.height)
+        self.rookie_button._update_msg_position()
+
+        self.hero_button.rect.top = (
+            self.play_button.rect.bottom + 0.5 * self.rookie_button.rect.height)
+        self.hero_button._update_msg_position()
+
+        self.veteran_button.rect.left = (
+            self.hero_button.rect.right + 0.5 * self.hero_button.rect.width)
+        self.veteran_button.rect.top = (
+            self.play_button.rect.bottom + 0.5 * self.hero_button.rect.height)
+        self.veteran_button._update_msg_position()
+
+    def _check_events(self):
+        """Respond to keypresses and mouse events."""
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            
+            elif event.type == pygame.KEYDOWN:
+                self._check_keydown_events(event)
+
+            elif event.type == pygame.KEYUP:
+                self._check_keyup_events(event)
+            
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                self._check_play_button(mouse_pos)
+                self._check_difficulty_buttons(mouse_pos) 
+
+    def _check_play_button(self, mouse_pos):
+        """Start a new game when the player clicks Play."""
+        button_clicked = self.play_button.rect.collidepoint(mouse_pos)
+        if button_clicked and not self.stats.game_active:
+            self._start_game()
+
+    def _check_difficulty_buttons(self, mouse_pos):
+        """
+        Set difficulty based on user selection and highlight 
+        the selected difficulty button.
+        """
+        rookie_button_clicked = self.rookie_button.rect.collidepoint(
+            mouse_pos)
+        hero_button_clicked = self.hero_button.rect.collidepoint(
+            mouse_pos)
+        veteran_button_clicked = self.veteran_button.rect.collidepoint(
+            mouse_pos)
+
+        if rookie_button_clicked:
+            self.settings.difficulty_level = 'rookie'
+            self.hero_button._reset_button_color()
+            self.veteran_button._reset_button_color()
+            self.rookie_button._change_button_color()
+         
+
+        elif hero_button_clicked:
+            self.settings.difficulty_level = 'hero'
+            self.rookie_button._reset_button_color()
+            self.veteran_button._reset_button_color()
+            self.hero_button._change_button_color()
+
+        elif veteran_button_clicked:
+            self.settings.difficulty_level = 'veteran' 
+            self.rookie_button._reset_button_color()
+            self.hero_button._reset_button_color()
+            self.veteran_button._change_button_color()        
                 
     def _check_keydown_events(self, event):
         """Respond to keypresses."""
@@ -277,8 +290,8 @@ class AlienInvasion:
         # Determine the number of aliens that fit on the screen.
         ship_height = self.ship.rect.height
         available_space_y = (self.settings.screen_height - 
-                                (3 * alien_height) - ship_height)
-        number_rows = available_space_y // (3 * alien_height)
+                                (2 * alien_height) - ship_height)
+        number_rows = available_space_y // (4 * alien_height)
 
         # Create the full fleet of aliens.
         for row_number in range(number_rows):
@@ -290,8 +303,9 @@ class AlienInvasion:
         alien = Alien(self)
         alien_width, alien_height = alien.rect.size
         alien.x = alien_width + 2 * alien_width * alien_number
+        alien.y = alien_height + 2 * alien_height * row_number
         alien.rect.x = alien.x
-        alien.rect.y = alien.rect.height + 2 * alien.rect.height * row_number
+        alien.rect.y = alien.y  
         self.aliens.add(alien)
 
     def _check_fleet_edges(self):
@@ -322,9 +336,9 @@ class AlienInvasion:
         # Draw the game buttons if the game is inactive
         if not self.stats.game_active:
             self.play_button.draw_button()
-            self.easy_button.draw_button()
-            self.medium_button.draw_button()
-            self.difficult_button.draw_button()       
+            self.rookie_button.draw_button()
+            self.hero_button.draw_button()
+            self.veteran_button.draw_button()       
 
         # Make the most recently drawn screen visible.
         pygame.display.flip()
