@@ -201,12 +201,13 @@ class AlienInvasion:
         if not self.aliens:
             # Destroy existing bullets and create a new alien fleet.
             self.bullets.empty()
-            self._create_fleet()
-            self.settings.increase_speed()
+            self._create_boss_alien()
+            #self._create_fleet()
+            #self.settings.increase_speed()
 
             # Increase level.
-            self.stats.level += 1
-            self.sb.prep_level()
+            #self.stats.level += 1
+            #self.sb.prep_level()
 
 
     def _update_aliens(self):
@@ -293,6 +294,16 @@ class AlienInvasion:
         alien.rect.x = alien.x
         alien.rect.y = alien.rect.height + 2 * alien.rect.height * row_number
         self.aliens.add(alien)
+        
+    def _create_boss_alien(self, boss_number, row_number):
+        """Create a boss alien"""
+        boss = Alien(self)
+        boss_width, boss_height = boss.rect.size
+        boss.x = boss_width + 2 * boss_width * boss_number
+        boss.rect.x = boss.x
+        boss.rect.y = boss.rect.height + 2 * boss.rect.height * row_number
+        self.aliens.add(boss)
+
 
     def _check_fleet_edges(self):
         """Respond appropriately if any aliens have reached an edge."""
