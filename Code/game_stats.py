@@ -11,7 +11,8 @@ class GameStats:
         # Start Alien Invasion in an inactive state
         self.game_active = False
 
-        # High score should never be reset.
+        # High score is accessed from the JSON file 
+        # using the get_saved_high_score() method.
         self.high_score = self.get_saved_high_score()
     
     def get_saved_high_score(self):

@@ -9,7 +9,7 @@ class Button:
 
         # Set the dimensions and properties of the button.
         self.width, self.height = 200, 50
-        self.button_color = (0, 255, 0)
+        self.button_color = (8, 80, 128)
         self.text_color = (255, 255, 255)
         self.font = pygame.font.SysFont(None, 48)
 
@@ -20,6 +20,16 @@ class Button:
         # The button message needs to be prepped only once.
         self._prep_msg(msg)
 
+    def _change_button_color(self):
+        """Changes the button color when the button is clicked"""  
+        self.button_color = (66, 94, 112)
+
+    def _reset_button_color(self):
+        """
+        Used to change button color back when a different button is selected
+        """
+        self.button_color = (8, 80, 128)
+
     def _prep_msg(self, msg):
         """Turn msg into a rendered image and center text on the bottom."""
         self.msg_image = self.font.render(msg, True, self.text_color, 
@@ -28,7 +38,7 @@ class Button:
         self.msg_image_rect.center = self.rect.center
 
     def _update_msg_position(self):
-        """If the button has been moved, the text needs to be moved as well."""
+        """Center the text on the button if the button moves."""
         self.msg_image_rect.center = self.rect.center
 
     def draw_button(self):
