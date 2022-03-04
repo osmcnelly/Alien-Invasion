@@ -1,11 +1,12 @@
 import sys, pygame
-from turtle import settiltangle
 
 from time import sleep
 
+
+from explosion import Explosion
 from settings import Settings
 from ship import Ship
-from bullet import Bullet
+from bullet import Bullet, AlienBullet
 from alien import Alien
 from game_stats import GameStats
 from button import Button
@@ -21,7 +22,7 @@ class AlienInvasion:
         self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         
         pygame.display.set_caption("Alien Invasion")
-
+        
         # Create an instance to store game stats and create a scoreboard
         self.stats = GameStats(self)   
         self.sb = Scoreboard(self) 
@@ -29,6 +30,8 @@ class AlienInvasion:
         self.ship = Ship(self)
         self.bullets = pygame.sprite.Group()
         self.aliens = pygame.sprite.Group()
+        self.explosions = pygame.sprite.Group()
+        self.alien_bullets = pygame.sprite.Group()
 
         self._create_fleet()
 
@@ -47,6 +50,9 @@ class AlienInvasion:
                 self.ship.update()
                 self._update_bullets()
                 self._update_aliens()
+                self._update_alien_bullets()
+                self.explosions.update()
+                self.alien_bullets.update()
             
             self._update_screen()
 
@@ -79,8 +85,7 @@ class AlienInvasion:
         pygame.mouse.set_visible(False)
 
         # Pause for the music countdown
-        sleep(2.0) 
-            
+        sleep(2.0)             
 
     def _make_difficulty_buttons(self):
         """Make buttons that allow player to select difficulty level."""
@@ -104,7 +109,7 @@ class AlienInvasion:
         self.veteran_button.rect.top = (
             self.play_button.rect.bottom + 0.5 * self.hero_button.rect.height)
         self.veteran_button._update_msg_position()
-
+         
     def _check_events(self):
         """Respond to keypresses and mouse events."""
         for event in pygame.event.get():
@@ -175,14 +180,14 @@ class AlienInvasion:
         if event.key == pygame.K_RIGHT:
             self.ship.moving_right = False
         if event.key == pygame.K_LEFT:
-            self.ship.moving_left = False
+            self.ship.moving_left = False       
     
     def _fire_bullet(self):
         """Create a new bullet and add it  to the bullet group."""
         if len(self.bullets) < self.settings.bullets_allowed:
             new_bullet = Bullet(self)
             self.bullets.add(new_bullet)
-
+            
     def _update_bullets(self):
         """Update the position of bullets  and remove old bullets."""
         # Update bullet positions.
@@ -192,7 +197,7 @@ class AlienInvasion:
         for bullet in self.bullets.copy():
             if bullet.rect.bottom <= 0:
                 self.bullets.remove(bullet)
-        
+
         self._check_bullet_alien_collisions()
         
     def _check_bullet_alien_collisions(self):
@@ -203,7 +208,9 @@ class AlienInvasion:
         # If the alien's health is greater than one, add score and lower alien 
         # health by 1 but do not kill the sprite
         if self.settings.alien_health > 1:    
-            collisions = pygame.sprite.groupcollide(self.bullets, self.aliens, True, False)
+            collisions = pygame.sprite.groupcollide(
+                self.bullets, self.aliens, True, False, 
+                pygame.sprite.collide_mask)
             if collisions:
                 for aliens in collisions.values():
                     self.stats.score += self.settings.alien_points * len(aliens)
@@ -211,31 +218,54 @@ class AlienInvasion:
                 self.sb.prep_score()
                 self.sb.check_high_score()
                 self.settings.alien_health -= 1
-        # If alien health is lower than one kill the sprite and add score.
-        else:
-            collisions = pygame.sprite.groupcollide(self.bullets, self.aliens, True, True)
-            for aliens in collisions.values():
-                self.stats.score += self.settings.alien_points * len(aliens)
-                self.alien_hit.play()
-                self.sb.prep_score()
-                self.sb.check_high_score()
-                self.settings.alien_health = 0
-    
+        # If alien health is lower than one, kill the sprite and add score.
+        else: 
+            # If the alien is a regular alien, play the smaller explosion
+            if self.stats.boss_beaten == False:
+                for bullet in self.bullets:
+                    if pygame.sprite.spritecollide(bullet, self.aliens, True):
+                        bullet.kill()
+                        exp = Explosion(bullet.rect.centerx, bullet.rect.centery, 2)
+                        self.explosions.add(exp)
+                        self._score_alien()       
+            # If the alien is the boss, play the larger explosion
+            if self.stats.boss_beaten == True:
+                for bullet in self.bullets:
+                    if pygame.sprite.spritecollide(bullet, self.aliens, True):
+                        bullet.kill()
+                        exp = Explosion(bullet.rect.centerx, bullet.rect.centery, 3)
+                        self.explosions.add(exp)
+                        self._score_alien()
         # When aliens sprite group is empty the game spawns the boss if 
         # boss_beaten flag is false. Once boss is beaten, boss_beaten flag is 
         # set to true and the next level begins
         if not self.aliens: 
             if not self.stats.boss_beaten:
                 self._start_boss_fight()
-            else:
-                self._start_next_level()
+            if self.stats.boss_beaten and not self.explosions:
+                self._start_next_level()  
+
+    def _score_alien(self):
+        """
+        Increase the score for each alien shot, check the high score, 
+        and reset the alien's health
+        """
+        self.stats.score += self.settings.alien_points * 1
+        self.alien_hit.play()
+        self.sb.prep_score()
+        self.sb.check_high_score()
+        self.settings.alien_health = 0
 
     def _start_next_level(self):
         """
         Method that empties bullets, creates a new fleet, increases speed, 
         resets the boss_beaten flag, and increments the level indicators
         """
+        self.stats.fire = False
+        # Empty sprite groups and wait one second before starting the next level
+        self.aliens.empty()
         self.bullets.empty()
+        sleep(1)
         self._create_fleet()
         self.settings.increase_speed()
 
@@ -246,11 +276,12 @@ class AlienInvasion:
 
     def _start_boss_fight(self):
         """Method that creates the boss preps/starts the boss fight"""
+        # Empty sprite groups, prep the boss health, and create the boss.
+        self.aliens.empty()
         self.bullets.empty()
         self._create_boss_alien()
         self.settings.alien_health = 5
-        self.stats.boss_beaten = True
-        
+        self.stats.boss_beaten = True   
 
     def _update_aliens(self):
         """
@@ -259,6 +290,7 @@ class AlienInvasion:
         """
         self._check_fleet_edges()
         self.aliens.update()
+        
         
         # Look for alien-ship collisions.
         if pygame.sprite.spritecollideany(self.ship, self.aliens):
@@ -363,9 +395,12 @@ class AlienInvasion:
         # Redraw the screenduring each pass through the loop.
         self.screen.blit(self.settings.bg, self.settings.bg_rect)
         self.ship.blitme()
-        for bullet in self.bullets.sprites():
-            bullet.draw_bullet()
+        # for bullet in self.bullets.sprites():
+        #     bullet.draw_bullet()
+        self.alien_bullets.draw(self.screen)
+        self.bullets.draw(self.screen)
         self.aliens.draw(self.screen)
+        self.explosions.draw(self.screen)
 
         # Draw score information
         self.sb.show_score()
