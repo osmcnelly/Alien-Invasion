@@ -354,6 +354,7 @@ class AlienInvasion:
         Method that empties bullets, creates a new fleet, increases speed, 
         resets the boss_beaten flag, and increments the level indicators
         """
+        pygame.time.set_timer(self.alien_shoot, 0)
         # Empty sprite groups and wait one second before starting the next level
         self.aliens.empty()
         self.bullets.empty()
