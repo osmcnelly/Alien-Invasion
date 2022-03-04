@@ -29,6 +29,8 @@ class Settings:
 
         # Alien Settings
         self.fleet_drop_speed = 10
+        self.alien_health = 0
+        self.boss_health = 5
 
         # How quickly the game speeds up
         self.speedup_scale = 1.1
@@ -68,6 +70,7 @@ class Settings:
             self.ship_speed = 6.0
             self.bullet_speed = 8.0
             self.alien_speed = 4.0
+            
 
         # fleet_direction of 1 represents right; -1 represents left
         self.fleet_direction = 1

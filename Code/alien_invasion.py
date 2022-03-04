@@ -1,4 +1,5 @@
 import sys, pygame
+from turtle import settiltangle
 
 from time import sleep
 
@@ -9,7 +10,6 @@ from alien import Alien
 from game_stats import GameStats
 from button import Button
 from scoreboard import Scoreboard
-
 
 class AlienInvasion:
     """Overall class to manage game assets and behavior."""
@@ -57,6 +57,7 @@ class AlienInvasion:
         # Reset statistics
         self.stats.reset_stats()
         self.stats.game_active = True
+        self.stats.boss_beaten = False
 
         self.sb.prep_score()
         self.sb.prep_level()
@@ -199,29 +200,57 @@ class AlienInvasion:
         # Sound for when an alien ship is hit by a lazer
         self.alien_hit = pygame.mixer.Sound('Sounds/alien_explode.wav')
 
-        # Remove any bullets and aliens that have collided.
-        collisions = pygame.sprite.groupcollide(
-            self.bullets, self.aliens, True, True)
-    
-        if collisions:
+        # If the alien's health is greater than one, add score and lower alien 
+        # health by 1 but do not kill the sprite
+        if self.settings.alien_health > 1:    
+            collisions = pygame.sprite.groupcollide(self.bullets, self.aliens, True, False)
+            if collisions:
+                for aliens in collisions.values():
+                    self.stats.score += self.settings.alien_points * len(aliens)
+                self.alien_hit.play()
+                self.sb.prep_score()
+                self.sb.check_high_score()
+                self.settings.alien_health -= 1
+        # If alien health is lower than one kill the sprite and add score.
+        else:
+            collisions = pygame.sprite.groupcollide(self.bullets, self.aliens, True, True)
             for aliens in collisions.values():
                 self.stats.score += self.settings.alien_points * len(aliens)
-            self.alien_hit.play()
-            self.sb.prep_score()
-            self.sb.check_high_score()
+                self.alien_hit.play()
+                self.sb.prep_score()
+                self.sb.check_high_score()
+                self.settings.alien_health = 0
+    
+        # When aliens sprite group is empty the game spawns the boss if 
+        # boss_beaten flag is false. Once boss is beaten, boss_beaten flag is 
+        # set to true and the next level begins
+        if not self.aliens: 
+            if not self.stats.boss_beaten:
+                self._start_boss_fight()
+            else:
+                self._start_next_level()
 
+    def _start_next_level(self):
+        """
+        Method that empties bullets, creates a new fleet, increases speed, 
+        resets the boss_beaten flag, and increments the level indicators
+        """
+        self.bullets.empty()
+        self._create_fleet()
+        self.settings.increase_speed()
+
+        #Increase level.
+        self.stats.level += 1
+        self.sb.prep_level()
+        self.stats.boss_beaten = False
+
+    def _start_boss_fight(self):
+        """Method that creates the boss preps/starts the boss fight"""
+        self.bullets.empty()
+        self._create_boss_alien()
+        self.settings.alien_health = 5
+        self.stats.boss_beaten = True
         
-        if not self.aliens:
-            # Destroy existing bullets and create a new alien fleet.
-            self.bullets.empty()
-            self._create_boss_alien()
-            #self._create_fleet()
-            #self.settings.increase_speed()
-
-            # Increase level.
-            #self.stats.level += 1
-            #self.sb.prep_level()
-
 
     def _update_aliens(self):
         """
@@ -309,14 +338,11 @@ class AlienInvasion:
         alien.rect.y = alien.y  
         self.aliens.add(alien)
         
-    def _create_boss_alien(self, boss_number, row_number):
+    def _create_boss_alien(self):
         """Create a boss alien"""
-        boss = Alien(self)
-        boss_width, boss_height = boss.rect.size
-        boss.x = boss_width + 2 * boss_width * boss_number
-        boss.rect.x = boss.x
-        boss.rect.y = boss.rect.height + 2 * boss.rect.height * row_number
-        self.aliens.add(boss)
+        self.boss = Alien(self)
+        self.boss._change_alien_image()
+        self.aliens.add(self.boss)
 
 
     def _check_fleet_edges(self):

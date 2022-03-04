@@ -10,6 +10,7 @@ class GameStats:
 
         # Start Alien Invasion in an inactive state
         self.game_active = False
+        self.boss_beaten = False
 
         # High score is accessed from the JSON file 
         # using the get_saved_high_score() method.
