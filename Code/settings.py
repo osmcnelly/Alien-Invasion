@@ -8,6 +8,7 @@ class Settings:
         self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         self.screen_width = self.screen.get_rect().width
         self.screen_height = self.screen.get_rect().height
+        self.screen_bottom = self.screen.get_rect().bottom
 
         # Setting Background image and scaling it to fit the current screen
         self.bg = pygame.image.load("images/background.jpg")
@@ -20,6 +21,7 @@ class Settings:
 
         # Ship Settings
         self.ship_limit = 3
+        self.ship_health = 5
 
         # Bullet Settings
         self.bullets_allowed = 3

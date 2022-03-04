@@ -35,6 +35,8 @@ class AlienInvasion:
 
         self._create_fleet()
 
+        
+
         # Make the Play button.
         self.play_button = Button(self, "Play")
 
@@ -52,7 +54,6 @@ class AlienInvasion:
                 self._update_aliens()
                 self._update_alien_bullets()
                 self.explosions.update()
-                self.alien_bullets.update()
             
             self._update_screen()
 
@@ -65,6 +66,8 @@ class AlienInvasion:
         self.stats.game_active = True
         self.stats.boss_beaten = False
 
+        self.alien_shoot = pygame.USEREVENT + 0
+
         self.sb.prep_score()
         self.sb.prep_level()
         self.sb.prep_ships()
@@ -72,6 +75,7 @@ class AlienInvasion:
         # Get rid of any remaining aliens and bullets.
         self.aliens.empty()
         self.bullets.empty()
+        self.alien_bullets.empty()
 
         # Create a new fleet and center the ship
         self._create_fleet()
@@ -109,7 +113,9 @@ class AlienInvasion:
         self.veteran_button.rect.top = (
             self.play_button.rect.bottom + 0.5 * self.hero_button.rect.height)
         self.veteran_button._update_msg_position()
-         
+
+   
+    
     def _check_events(self):
         """Respond to keypresses and mouse events."""
         for event in pygame.event.get():
@@ -126,6 +132,10 @@ class AlienInvasion:
                 mouse_pos = pygame.mouse.get_pos()
                 self._check_play_button(mouse_pos)
                 self._check_difficulty_buttons(mouse_pos) 
+            
+            elif self.stats.game_active == True:
+                if event.type == self.alien_shoot:
+                    self._fire_alien_bullet()
 
     def _check_play_button(self, mouse_pos):
         """Start a new game when the player clicks Play."""
@@ -163,7 +173,7 @@ class AlienInvasion:
             self.rookie_button._reset_button_color()
             self.hero_button._reset_button_color()
             self.veteran_button._change_button_color()        
-                
+    
     def _check_keydown_events(self, event):
         """Respond to keypresses."""
         if event.key == pygame.K_RIGHT:
@@ -180,7 +190,26 @@ class AlienInvasion:
         if event.key == pygame.K_RIGHT:
             self.ship.moving_right = False
         if event.key == pygame.K_LEFT:
-            self.ship.moving_left = False       
+            self.ship.moving_left = False
+        
+    def _fire_alien_bullet(self):
+        """Create a new bullet and add it  to the bullet group."""
+        for alien in self.aliens.sprites():
+            if len(self.alien_bullets) < self.settings.alien_bullets_allowed:
+                new_bullet = AlienBullet(alien.rect.centerx, alien.rect.centery)
+                self.alien_bullets.add(new_bullet)
+            
+    def _update_alien_bullets(self):
+        """Update the position of bullets  and remove old bullets."""
+        # Update bullet positions.
+        self.alien_bullets.update()
+
+        # Get rid of bullets that have disappeared.
+        for bullet in self.alien_bullets.copy():
+            if bullet.rect.bottom >= self.settings.screen_bottom:
+                self.alien_bullets.remove(bullet)
+
+        self._check_bullet_ship_collisions()
     
     def _fire_bullet(self):
         """Create a new bullet and add it  to the bullet group."""
@@ -200,6 +229,70 @@ class AlienInvasion:
 
         self._check_bullet_alien_collisions()
         
+    def _check_bullet_ship_collisions(self):
+        """Respond to bullet_ship collisions."""
+        # Sound for when an alien ship is hit by a lazer
+        self.ship_hit = pygame.mixer.Sound('Sounds/alien_explode.wav')
+        self.ship_crash = pygame.mixer.Sound('Sounds/ship_crash.wav')
+                   
+        # If more than one ship left and ship health > 1 lower ship health by 
+        # one. Else, lower ships_left by one and prep a new ship.
+        if self.stats.ships_left >= 1:
+            if self.settings.ship_health > 1:
+              
+                collisions = pygame.sprite.spritecollide(
+                    self.ship, self.alien_bullets, True, 
+                    pygame.sprite.collide_mask)
+                if collisions:
+                    self.ship_hit.play()
+                    self.settings.ship_health -= 1
+                    exp = Explosion(self.ship.rect.centerx, self.ship.rect.centery, 1)
+                    self.explosions.add(exp) 
+            else:
+                # Decrement ships left, update scoreboard.
+                collisions = pygame.sprite.spritecollide(
+                    self.ship, self.alien_bullets, True, 
+                    pygame.sprite.collide_mask)
+                if collisions:
+                    exp = Explosion(self.ship.rect.centerx, self.ship.rect.centery, 3)
+                    self.explosions.add(exp) 
+                    self.ship_hit.play()
+                    self.stats.ships_left -= 1
+                    self.ship_crash.play()
+                    self.sb.prep_ships()
+                    self.settings.ship_health = 5
+        else:
+            if self.settings.ship_health > 1: 
+              
+                collisions = pygame.sprite.spritecollide(
+                    self.ship, self.alien_bullets, True, 
+                    pygame.sprite.collide_mask)
+                if collisions:
+                    self.ship_hit.play()
+                    self.settings.ship_health -= 1
+                    exp = Explosion(self.ship.rect.centerx, self.ship.rect.centery, 1)
+                    self.explosions.add(exp) 
+            else:
+                # for bullet in self.alien_bullets:
+                collisions = pygame.sprite.spritecollide(
+                    self.ship, self.alien_bullets, True, 
+                    pygame.sprite.collide_mask)
+                if collisions:
+                    self.ship_crash.play()
+                    exp = Explosion(self.ship.rect.centerx, self.ship.rect.centery, 3)
+                    self.explosions.add(exp)                    
+                    self.stats.boss_beaten = False
+                    self.settings.alien_health = 1
+                    pygame.time.set_timer(self.alien_shoot, 0)
+                    pygame.mixer.music.stop()
+                    self.game_over = pygame.mixer.Sound('Sounds/game_over.wav')
+                    self.game_over.play()
+
+                    # Check/update high score, and set game_active to false
+                    self.stats._check_high_score()
+                    self.stats.game_active = False
+                    pygame.mouse.set_visible(True)
+   
     def _check_bullet_alien_collisions(self):
         """Respond to bullet_alien collisions."""
         # Sound for when an alien ship is hit by a lazer
@@ -261,10 +354,10 @@ class AlienInvasion:
         Method that empties bullets, creates a new fleet, increases speed, 
         resets the boss_beaten flag, and increments the level indicators
         """
-        self.stats.fire = False
         # Empty sprite groups and wait one second before starting the next level
         self.aliens.empty()
         self.bullets.empty()
+        self.alien_bullets.empty()
         sleep(1)
         self._create_fleet()
         self.settings.increase_speed()
@@ -277,11 +370,14 @@ class AlienInvasion:
     def _start_boss_fight(self):
         """Method that creates the boss preps/starts the boss fight"""
         # Empty sprite groups, prep the boss health, and create the boss.
-        self.aliens.empty()
-        self.bullets.empty()
-        self._create_boss_alien()
-        self.settings.alien_health = 5
-        self.stats.boss_beaten = True   
+        self.stats.boss_beaten = True  
+        if self.stats.game_active and self.stats.boss_beaten:
+            pygame.time.set_timer(self.alien_shoot, 2000)
+            self.aliens.empty()
+            self.bullets.empty()
+            self._create_boss_alien()
+            self.settings.alien_health = 5
+             
 
     def _update_aliens(self):
         """
@@ -321,6 +417,7 @@ class AlienInvasion:
             sleep(0.5)
         else:
             # Stop the game music and play 'ship crash' and 'game over' sound
+            self.stats.boss_beaten == False
             pygame.mixer.music.stop()
             self.ship_crash.play()
             self.game_over = pygame.mixer.Sound('Sounds/game_over.wav')
@@ -395,8 +492,6 @@ class AlienInvasion:
         # Redraw the screenduring each pass through the loop.
         self.screen.blit(self.settings.bg, self.settings.bg_rect)
         self.ship.blitme()
-        # for bullet in self.bullets.sprites():
-        #     bullet.draw_bullet()
         self.alien_bullets.draw(self.screen)
         self.bullets.draw(self.screen)
         self.aliens.draw(self.screen)
