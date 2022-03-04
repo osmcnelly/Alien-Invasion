@@ -9,11 +9,20 @@ class Bullet(Sprite):
         super().__init__()
         self.screen = ai_game.screen
         self.settings = ai_game.settings
-        self.color = self.settings.bullet_color
+
+        self.bullet_width = self.screen.get_rect().width * .02
+        self.bullet_height = self.screen.get_rect().height * .04
+
+        # Load the alien image and set its scale and rect attribute. 
+        self.image = pygame.image.load('images/bullet.png')
+        self.image = pygame.transform.scale(
+            self.image,(self.bullet_width, self.bullet_height))
+        self.rect = self.image.get_rect()
+
 
         # Create a bullet rect at (0, 0) and then set correct position.
-        self.rect = pygame.Rect(0, 0, self.settings.bullet_width,
-            self.settings.bullet_height)
+        self.rect = pygame.Rect(0, 0, self.bullet_width,
+            self.bullet_height)
         self.rect.midtop = ai_game.ship.rect.midtop
 
         # Ship Lazer sound
@@ -26,14 +35,16 @@ class Bullet(Sprite):
 
     def update(self):
         """Move the bullet up the screen."""
+        self.mask = pygame.mask.from_surface(self.image)
         # Update the decimal position of the bullet
         self.y -= self.settings.bullet_speed
         # Update the rect position
         self.rect.y = self.y
 
+
     def draw_bullet(self):
         """Draw the bullet to the screen"""
-        pygame.draw.rect(self.screen, self.color, self.rect)
-        
+        pygame.draw.rect(self.screen, self.image, self.rect)
+
 
 

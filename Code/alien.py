@@ -18,8 +18,11 @@ class Alien(Sprite):
 
         # Load the alien image and set its scale and rect attribute. 
         self.image = pygame.image.load('images/alien-medium.png')
-        self.image = pygame.transform.scale(self.image,(self.alien_width, self.alien_height))
+        self.image = pygame.transform.scale(self.image,(
+            self.alien_width, self.alien_height))
         self.rect = self.image.get_rect()
+
+        
 
         # Start each new alien near the top left of the screen.
         self.rect.x = self.rect.width 
@@ -30,9 +33,11 @@ class Alien(Sprite):
 
     def _change_alien_image(self):
         self.image = pygame.image.load('images/boss2.png')
+        self.rect = self.image.get_rect()
 
     def update(self):
         """Move the alien to the right."""
+        self.mask = pygame.mask.from_surface(self.image)
         self.x += (self.settings.alien_speed * 
                         self.settings.fleet_direction)
         self.rect.x = self.x
