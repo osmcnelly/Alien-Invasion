@@ -1,6 +1,7 @@
 import pygame
 from pygame.sprite import Sprite
 
+
 class Ship(Sprite):
     """A class to manage the ship."""
 
@@ -11,8 +12,7 @@ class Ship(Sprite):
         self.settings = ai_game.settings
         self.screen_rect = ai_game.screen.get_rect()
 
-       
-        # Set the ship width and height to a percentage of the screen rect's 
+        # Set the ship width and height to a percentage of the screen rect's
         # width and height. This allows the ship image to scale 
         # up and down between screen resolutions.
         self.ship_width = self.screen.get_rect().width * .03
@@ -20,7 +20,7 @@ class Ship(Sprite):
 
         # Load the ship image and get its rect.
         self.image = pygame.image.load('images/ship-medium.png')
-        self.image = pygame.transform.scale(self.image,(self.ship_width, self.ship_height))
+        self.image = pygame.transform.scale(self.image, (self.ship_width, self.ship_height))
         self.rect = self.image.get_rect()
 
         # Start each new ship at the bottom center of the screen.

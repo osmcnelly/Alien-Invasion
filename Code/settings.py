@@ -1,4 +1,6 @@
 import pygame
+
+
 class Settings:
     """A Class to store all settings for Alien Invasion."""
 
@@ -11,9 +13,9 @@ class Settings:
         self.screen_bottom = self.screen.get_rect().bottom
 
         # Setting Background image and scaling it to fit the current screen
-        self.bg = pygame.image.load("images/background.jpg")
+        self.bg = pygame.image.load("./images/background.jpg")
         self.bg = pygame.transform.scale(
-            self.bg,(self.screen_width, self.screen_height))
+            self.bg, (self.screen_width, self.screen_height))
 
         # Assigning the background image rect
         self.bg_rect = self.bg.get_rect()
@@ -50,37 +52,47 @@ class Settings:
     def initialize_dynamic_settings(self):
         """Initialize settings that change throughout the game."""
         # Scoring
-        self.alien_points = 50
-        # Three difficulty levels that increase speed and decrease ships and 
+
+        # Three difficulty levels that increase speed and decrease ships and
         # bullets as the difficulty level increases
         if self.difficulty_level == 'rookie':
             self.ship_limit = 4
             self.bullets_allowed = 10
             self.ship_speed = 2
-            self.bullet_speed = 4
+            self.bullet_speed = 4.0
             self.alien_speed = 1.5
+            self.alien_bullet_speed = 4
+            self.alien_bullets_allowed = 5
+            self.alien_points = 50
+
+
         elif self.difficulty_level == 'hero':
             self.ship_limit = 3
             self.bullets_allowed = 5
             self.ship_speed = 3.0
             self.bullet_speed = 6.0
             self.alien_speed = 2.0
+            self.alien_bullet_speed = 6
+            self.alien_bullets_allowed = 5
+            self.alien_points = 100
+
+
         elif self.difficulty_level == 'veteran':
             self.ship_limit = 2
             self.bullets_allowed = 3
             self.ship_speed = 6.0
             self.bullet_speed = 8.0
             self.alien_speed = 4.0
-            
+            self.alien_bullet_speed = 8
+            self.alien_bullets_allowed = 5
+            self.alien_points = 150
 
         # fleet_direction of 1 represents right; -1 represents left
         self.fleet_direction = 1
-       
+
     def increase_speed(self):
         """Increase speed settings and alien point values."""
         self.ship_speed *= self.speedup_scale
         self.bullet_speed *= self.speedup_scale
         self.alien_speed *= self.speedup_scale
         self.alien_points = int(self.alien_points * self.score_scale)
-
-        

@@ -48,7 +48,7 @@ class AlienBullet(Sprite):
         """Create a bullet object at the ship's current position."""
         super().__init__()
 
-        self.bullet_speed = 2
+        self.alien_bullet_speed = 2
 
         # Load the alien image and set its scale and rect attribute. 
         self.image = pygame.image.load('images/alien_bullet.png')
@@ -61,8 +61,8 @@ class AlienBullet(Sprite):
         self.rect = pygame.Rect(0, 0, .02, .04)
         self.rect.center = [x, y]
 
-        # Ship Lazer sound
-        self.lazer = pygame.mixer.Sound('Sounds/lazer.wav')
+        # Boss Ship Lazer sound
+        self.lazer = pygame.mixer.Sound('Sounds/boss.wav')
         self.lazer.play()
 
 
@@ -73,7 +73,7 @@ class AlienBullet(Sprite):
         """Move the bullet up the screen."""
         self.mask = pygame.mask.from_surface(self.image)
         # Update the decimal position of the bullet
-        self.y += self.bullet_speed
+        self.y += self.alien_bullet_speed
         # Update the rect position
         self.rect.y = self.y
 

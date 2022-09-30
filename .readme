@@ -39,19 +39,6 @@
 
 
 ####################################################################################################################################
-                                              ____                       _               
-                                             / __ \                     (_)              
-                                            | |  | |_   _____ _ ____   ___  _____      __
-                                            | |  | \ \ / / _ \ '__\ \ / / |/ _ \ \ /\ / /
-                                            | |__| |\ V /  __/ |   \ V /| |  __/\ V  V / 
-                                             \____/  \_/ \___|_|    \_/ |_|\___| \_/\_/  
-                                              
-####################################################################################################################################
-
-
-
-
-####################################################################################################################################
                                          _____           _        _ _       _   _             
                                         |_   _|         | |      | | |     | | (_)            
                                           | |  _ __  ___| |_ __ _| | | __ _| |_ _  ___  _ __  
@@ -61,4 +48,16 @@
 
 ####################################################################################################################################
 
+1. Extract the game to the location of your choosing. 
+
+2. Alien Invasion requires pygame in order to run. Install pygame by performing the following steps:
+  
+  a. Open a terminal and change directory to the Alien-Invasion-Final folder. Inside is a requirements.txt file.
+  b. Type "pip3 install -r requirements.txt" & press enter. This installs all necessary packages as identified by requirements.txt.
+
+      ** Alternatively, open a terminal and type "pip3 install pygame" and press enter. **
+
+3. alien_invasion.py is the main file for the Alien Invasion game. With pygame installed, run alien_invasion.py from your terminal.
+
+4. While the game is active, press 'q' at any time to quit.
 
